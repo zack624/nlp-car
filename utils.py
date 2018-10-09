@@ -17,6 +17,11 @@ def load_stop_words():
     return stop_words
 
 
+def load_vocabulary():
+    with open('output\\words_changed.txt', 'r', encoding='utf-8') as f:
+        return eval(f.read())
+
+
 def load_train():
     fr = open("data\\train.csv", encoding="utf-8")
     fr.readline()
@@ -62,7 +67,7 @@ def split4local_test(x, subjects, sentiments, rate=.9):
 
 
 def output(file_name, cid_test, subject_test, sentiment_test=0):
-    fr = open('output\\' + file_name, 'w', encoding='utf-8')
+    fr = open('output\\submit\\' + file_name, 'w', encoding='utf-8')
     fr.write('content_id,subject,sentiment_value,sentiment_word\n')
     for i in range(len(cid_test)):
         fr.write(cid_test[i])
@@ -79,6 +84,6 @@ def output(file_name, cid_test, subject_test, sentiment_test=0):
 
 
 def save_words(file_name, words):
-    with open('output\\' + file_name, 'w', encoding='utf-8') as f:
+    with open('output\\words\\' + file_name, 'w', encoding='utf-8') as f:
         f.write(str(words))
-    f.close()
+
