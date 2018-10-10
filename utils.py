@@ -107,18 +107,37 @@ def adjust_mulit_y(cid, y):
     return y_adjust
 
 
-def multi_label_process(y_probability, cid_test, y_not_lr, p=0.2):
+def multi_label_process(y_probability, cid_test, p=0.2):
     multi_label_x_test = []
     multi_label_y_test = []
     for i in range(len(cid_test)):
-        # max_p = 0
-        subject = y_not_lr[i]
+        max_p = 0
+        subject = 0
         labels = set()
-        # for j in range(10):
-        #     if y_probability[i][j] > max_p:
-        #         max_p = y_probability[i][j]
-        #         subject = j
-        # multi_label_x_test.append(cid_test[i])
+        for j in range(10):
+            if y_probability[i][j] > max_p:
+                max_p = y_probability[i][j]
+                subject = j
+        multi_label_x_test.append(cid_test[i])
+        labels.add(subject)
+        for j in range(10):
+            if j == subject:
+                continue
+            if y_probability[i][j] > p:
+                multi_label_x_test.append(cid_test[i])
+                labels.add(j)
+        for k in labels:
+            multi_label_y_test.append(k)
+    return multi_label_x_test, multi_label_y_test
+
+
+def multi_label_svc_lr(y_probability, cid_test, y_single, p=0.2):
+    multi_label_x_test = []
+    multi_label_y_test = []
+    for i in range(len(cid_test)):
+        subject = y_single[i]
+        labels = set()
+        multi_label_x_test.append(cid_test[i])
         labels.add(subject)
         for j in range(10):
             if j == subject:

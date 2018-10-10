@@ -23,7 +23,8 @@ def tfidf_calc(contents, content_test):
     # transform = TfidfTransformer(use_idf=1, smooth_idf=1, sublinear_tf=1)
     # tfidf = transform.fit_transform(vectorizer.fit_transform(x_train))
     vec = TfidfVectorizer(ngram_range=(1, 2), min_df=2, max_df=0.95, lowercase=False,
-                          use_idf=1, smooth_idf=1, sublinear_tf=1)
+                          use_idf=1, smooth_idf=1, sublinear_tf=1, stop_words=load_stop_words(),
+                          token_pattern=r"(?u)\b[\u4e00-\u9fa5]+\b")
     tfidf = vec.fit_transform(x_train)
     tfidf_data = tfidf.toarray()
     words = vec.get_feature_names()
@@ -125,21 +126,21 @@ if __name__ == "__main__":
     # # ===========================
     # model = my_naive_bayes(x_norm_train, y_sub_train)
     model = my_svm(x_norm_train, y_sub_train)
-    # model_lr = my_logistic_regression(x_norm_train, y_sub_train)
+    model_lr = my_logistic_regression(x_norm_train, y_sub_train)
     # model = my_nn_MLP(x_norm_train, y_sub_train)
     # local_test(cid4local_test, model, x_norm_4local_test, y4local_sub_test)
     # local_multi_test(cid4local_test, model, x_norm_4local_test, y4local_sub_test)
     print('the length of words: ' + str(len(words)))
-    # save_words('words_add_test_lr_12_450.txt', words)
+    # save_words('words_idf_svc_lr_multi28_swRE.txt', words)
     # =============================
     # test and output submit file #
     x_norm_test = normalizer.transform(x_idf_test)
-    y_not_lr = model.predict(x_norm_test)
-    output('submit_idf_svc.txt', cid_test, y)
+    y_single = model.predict(x_norm_test)
     # =============================
-    # y_p_test = model_lr.predict_proba(x_norm_test).tolist()
-    # mul_x, mul_y = multi_label_process(y_p_test, cid_test, y_not_lr, 0.25)
-    # output('submit_idf20000_svc_lr_multi25.txt', mul_x, mul_y)
+    y_p_test = model_lr.predict_proba(x_norm_test).tolist()
+    # mul_x, mul_y = multi_label_process(y_p_test, cid_test, 0.25)
+    mul_x, mul_y = multi_label_svc_lr(y_p_test, cid_test, y_single, 0.28)
+    output('submit_idf_svc_lr_multi28_swRE.txt', mul_x, mul_y)
     # ==============================
     # with open('output\\probability\\p_mulsub_23.txt', 'w', encoding='utf-8') as f:
     #     f.write(str(y_p_test))
