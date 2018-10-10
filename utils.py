@@ -17,6 +17,7 @@ def load_stop_words():
     return stop_words
 
 
+# useless
 def load_vocabulary():
     with open('output\\words_changed.txt', 'r', encoding='utf-8') as f:
         return eval(f.read())
@@ -52,7 +53,7 @@ def load_test():
     return cid_test, content_test
 
 
-def split4local_test(x, subjects, sentiments, rate=.9):
+def split4local_test(cid, x, subjects, sentiments, rate=.9):
     import random
     length = len(x)
     random_indies = list(range(length))
@@ -60,10 +61,11 @@ def split4local_test(x, subjects, sentiments, rate=.9):
     x_train = [x[i] for i in random_indies[0:int(rate * length)]]
     y_sub_train = [subjects[i] for i in random_indies[0:int(rate * length)]]
     y_sen_train = [sentiments[i] for i in random_indies[0:int(rate * length)]]
-    x4local_test = [x[i] for i in random_indies[int(rate * length):-1]]
-    y4local_sub_test = [subjects[i] for i in random_indies[int(rate * length):-1]]
-    y4local_sen_test = [sentiments[i] for i in random_indies[int(rate * length):-1]]
-    return x_train, y_sub_train, y_sen_train, x4local_test, y4local_sub_test, y4local_sen_test
+    cid4local_test = [cid[i] for i in random_indies[int(rate * length):]]
+    x4local_test = [x[i] for i in random_indies[int(rate * length):]]
+    y4local_sub_test = [subjects[i] for i in random_indies[int(rate * length):]]
+    y4local_sen_test = [sentiments[i] for i in random_indies[int(rate * length):]]
+    return x_train, y_sub_train, y_sen_train, cid4local_test, x4local_test, y4local_sub_test, y4local_sen_test
 
 
 def output(file_name, cid_test, subject_test, sentiment_test=0):
@@ -87,3 +89,43 @@ def save_words(file_name, words):
     with open('output\\words\\' + file_name, 'w', encoding='utf-8') as f:
         f.write(str(words))
 
+
+def adjust_mulit_y(cid, y):
+    y_adjust = []
+    labels = []
+    for i in range(len(cid)):
+        if i == (len(cid) - 1):
+            labels.append(y[i])
+            y_adjust.append(labels)
+            break
+        if cid[i+1] == cid[i]:
+            labels.append(y[i])
+        else:
+            labels.append(y[i])
+            y_adjust.append(labels)
+            labels = []
+    return y_adjust
+
+
+def multi_label_process(y_probability, cid_test, y_not_lr, p=0.2):
+    multi_label_x_test = []
+    multi_label_y_test = []
+    for i in range(len(cid_test)):
+        # max_p = 0
+        subject = y_not_lr[i]
+        labels = set()
+        # for j in range(10):
+        #     if y_probability[i][j] > max_p:
+        #         max_p = y_probability[i][j]
+        #         subject = j
+        # multi_label_x_test.append(cid_test[i])
+        labels.add(subject)
+        for j in range(10):
+            if j == subject:
+                continue
+            if y_probability[i][j] > p:
+                multi_label_x_test.append(cid_test[i])
+                labels.add(j)
+        for k in labels:
+            multi_label_y_test.append(k)
+    return multi_label_x_test, multi_label_y_test
