@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sklearn.naive_bayes as nb
 from utils import *
+from sen_analysis import *
 from sklearn import svm
 from sklearn import preprocessing
 from sklearn.metrics import classification_report
@@ -23,8 +24,8 @@ def tfidf_calc(contents, content_test):
     # transform = TfidfTransformer(use_idf=1, smooth_idf=1, sublinear_tf=1)
     # tfidf = transform.fit_transform(vectorizer.fit_transform(x_train))
     vec = TfidfVectorizer(ngram_range=(1, 2), min_df=2, max_df=0.95, lowercase=False,
-                          use_idf=1, smooth_idf=1, sublinear_tf=1, stop_words=load_stop_words(),
-                          token_pattern=r"(?u)\b[\u4e00-\u9fa5]+\b")
+                          use_idf=1, smooth_idf=1, sublinear_tf=1)
+    #, stop_words=load_stop_words(),token_pattern=r"(?u)\b[\u4e00-\u9fa5]+\b"
     tfidf = vec.fit_transform(x_train)
     tfidf_data = tfidf.toarray()
     words = vec.get_feature_names()
@@ -91,9 +92,14 @@ def my_nn_MLP(x, y):
     return clf
 
 
-def local_test(cid4local_test, model, x_test, y_test):
+def local_test(model, x_test, y_test, t_name=subject):
     print('accuracy: ' + str(model.score(x_test, y_test)))
-    print('F1: ' + str(classification_report(y_test, model.predict(x_test), target_names=subject)))
+    yp = model.predict(x_test)
+    yp[0] = 1
+    for i in range(len(yp)):
+        if yp[i] != 0:
+            yp[i] = -1
+    print('F1: ' + str(classification_report(y_test, yp, target_names=t_name)))
 
 
 def local_multi_test(cid4local_test, model, x_test, y_test):
@@ -128,19 +134,30 @@ if __name__ == "__main__":
     model = my_svm(x_norm_train, y_sub_train)
     model_lr = my_logistic_regression(x_norm_train, y_sub_train)
     # model = my_nn_MLP(x_norm_train, y_sub_train)
-    # local_test(cid4local_test, model, x_norm_4local_test, y4local_sub_test)
+
+    # =============================
+    # sentiment analysis
+    # sen_model = my_logistic_regression(x_norm_train, y_sen_train)
+    # sen_model = my_svm(x_norm_train, y_sen_train)
+    # local_test(sen_model, x_norm_4local_test, y4local_sen_test, ['负面', '中立', '正面'])
+    x_norm_test = normalizer.transform(x_idf_test)
+    # y_sen = sen_model.predict(x_norm_test)
+    # =============================
+    # for i in range(len(y_sen)):
+    #     if int(y_sen[i]) != 0:
+    #         y_sen[i] = -1
+
+    # local_test(model, x_norm_4local_test, y4local_sub_test)
     # local_multi_test(cid4local_test, model, x_norm_4local_test, y4local_sub_test)
     print('the length of words: ' + str(len(words)))
     # save_words('words_idf_svc_lr_multi28_swRE.txt', words)
     # =============================
-    # test and output submit file #
-    x_norm_test = normalizer.transform(x_idf_test)
     y_single = model.predict(x_norm_test)
     # =============================
     y_p_test = model_lr.predict_proba(x_norm_test).tolist()
-    # mul_x, mul_y = multi_label_process(y_p_test, cid_test, 0.25)
-    mul_x, mul_y = multi_label_svc_lr(y_p_test, cid_test, y_single, 0.28)
-    output('submit_idf_svc_lr_multi28_swRE.txt', mul_x, mul_y)
+    sen_single_test = sentiment_predict(content_test)
+    mul_x, mul_y_sub, mul_y_sen = multi_label_svc_lr(y_p_test, cid_test, y_single, sen_single_test, 0.29)
+    output('submit_ssnow3.txt', mul_x, mul_y_sub, sentiment_test=mul_y_sen)
     # ==============================
     # with open('output\\probability\\p_mulsub_23.txt', 'w', encoding='utf-8') as f:
     #     f.write(str(y_p_test))

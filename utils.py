@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import jieba
+from numpy import *
 
-
-subject = ['动力', '价格', '内饰', '配置', '安全性', '外观', '操控', '油耗', '空间', '舒适性']
-
+# subject = ['动力', '价格', '内饰', '配置', '安全性', '外观', '操控', '油耗', '空间', '舒适性']
+subject = ['价格','内饰','动力','外观','安全性','操控','油耗','空间','舒适性','配置']
 
 def cut_words(contents):
     return [" ".join(jieba.cut(c)) for c in contents]
@@ -68,13 +68,16 @@ def split4local_test(cid, x, subjects, sentiments, rate=.9):
     return x_train, y_sub_train, y_sen_train, cid4local_test, x4local_test, y4local_sub_test, y4local_sen_test
 
 
-def output(file_name, cid_test, subject_test, sentiment_test=0):
-    fr = open('output\\submit\\' + file_name, 'w', encoding='utf-8')
+def output(file_name, cid_test, subject_test=0, sentiment_test=0):
+    fr = open('output\\NO1\\' + file_name, 'w', encoding='utf-8')
     fr.write('content_id,subject,sentiment_value,sentiment_word\n')
     for i in range(len(cid_test)):
         fr.write(cid_test[i])
         fr.write(',')
-        fr.write(subject[subject_test[i]])
+        if subject_test == 0:
+            fr.write('动力')
+        else:
+            fr.write(subject[int(subject_test[i])])
         fr.write(',')
         if sentiment_test == 0:
             fr.write(str(sentiment_test))
@@ -131,20 +134,23 @@ def multi_label_process(y_probability, cid_test, p=0.2):
     return multi_label_x_test, multi_label_y_test
 
 
-def multi_label_svc_lr(y_probability, cid_test, y_single, p=0.2):
+def multi_label_svc_lr(y_probability, cid_test, y_single, y_sen, p=0.2):
     multi_label_x_test = []
-    multi_label_y_test = []
+    multi_label_y_sub = []
+    multi_label_y_sen = []
     for i in range(len(cid_test)):
         subject = y_single[i]
         labels = set()
         multi_label_x_test.append(cid_test[i])
+        multi_label_y_sen.append(y_sen[i])
         labels.add(subject)
         for j in range(10):
             if j == subject:
                 continue
             if y_probability[i][j] > p:
                 multi_label_x_test.append(cid_test[i])
+                multi_label_y_sen.append(y_sen[i])
                 labels.add(j)
         for k in labels:
-            multi_label_y_test.append(k)
-    return multi_label_x_test, multi_label_y_test
+            multi_label_y_sub.append(k)
+    return multi_label_x_test, multi_label_y_sub, multi_label_y_sen
