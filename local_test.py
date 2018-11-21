@@ -5,7 +5,8 @@ import jieba
 from snownlp import SnowNLP
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
-
+import matplotlib.pyplot as plt
+from pylab import mpl
 
 def load_train():
     fr = open("data\\train.csv", encoding="utf-8")
@@ -53,8 +54,30 @@ def statistic(data, i):
         sen_d[s[0]] = s[1]/float(len(data))
     # len(set([d[0] for d in data]))
     print(sub_d); print(sen_d)
-    return subs, sens
+    return sub_d, sen_d
 
+
+def statistic_plot(sets, i):
+    mpl.rcParams["font.sans-serif"] = ["SimHei"]
+    mpl.rcParams["axes.unicode_minus"] = False
+    fig = plt.figure()
+    x=[];y=[]
+    if (i==1):
+        x = [i for i in sets]
+        y = [sets[i] for i in sets]
+        plt.bar(x, y, 0.4, color="green")
+        plt.xlabel("topic")
+        plt.ylabel("ratio")
+        plt.title("Topic distribution chart")
+    if (i==2):
+        x = ["中立","正面","负面"]
+        y = [sets[i] for i in sets]
+        plt.bar(x, y, 0.2, color="green")
+        plt.xlabel("sentiment")
+        plt.ylabel("ratio")
+        plt.title("Sentiment distribution chart")
+    plt.show()
+    pass
 
 '''
 cid: 9947
@@ -74,9 +97,11 @@ def statistic_multi_subject(data):
     print('duplication: ' + str(len(data)-len(cid)))
     print(cid)
 
+    # seg_list = jieba.cut("因为森林人即将换代，这套系统没必要装在一款即将换代的车型上，因为肯定会影响价格。")
+
 
 def jieba_test():
-    seg_list = jieba.cut("我开始就是荣放2.5  森林人2.5二选一    荣放主要是底盘质感不行   太硬  其次是不能打开的天窗  和公主坟   不过价格确实便宜    少了5W块")
+    seg_list = jieba.cut("唉，这货的价格死硬死硬的，低配版优惠1万据说已经罕有了。")
     print("/".join(seg_list))
 
 
@@ -119,16 +144,21 @@ def snownlp_test():
 
 if __name__ == "__main__":
     # snownlp_test()
-    # subs, sens = statistic(load_train(), 2)
+    subs, sens = statistic(load_train(), 2)
+    # statistic_plot(subs,1)
+    # statistic_plot(sens,2)
     print('=' * 20)
-    # jieba_test()
+    jieba_test()
     # tfidf_test()
-    # statistic_multi_subject(load_train())
-    submit_subs, su_sens = statistic(load_submit('submit_no1_multi33_forpro.txt'), 1)
+    statistic_multi_subject(load_train())
+    # submit_subs, su_sens = statistic(load_submit('submit_no1_multi30_forpro_tfapp.txt'), 1)
+    # submit_subs, su_sens = statistic(load_submit('submit_no1_multi33_forpro_2.txt'), 1)
     print('=' * 20)
-    submit_subs, su_sens = statistic(load_submit('submit_no1_multi33_forpro_2.txt'), 1)
-    # submit_subs, su_sens = statistic(load_submit('submit_idf_svc_lr_multi28_swRE.txt'), 1)
+    # submit_subs, su_sens = statistic(load_submit('submit_no1_multi33_forpro_tfaddapp.txt'), 1)
+    # submit_subs, su_sens = statistic(load_submit('submit_no1_multi34_forpro_tfaddapp_2.txt'), 1)
     print('=' * 20)
     # test_public: 2364
-    statistic_multi_subject(load_submit('submit_no1_multi33_forpro.txt'))
-    statistic_multi_subject(load_submit('submit_no1_multi33_forpro_2.txt'))
+    statistic_multi_subject(load_submit('submit_no1_multi30_forpro_tfapp.txt'))
+    # statistic_multi_subject(load_submit('submit_no1_multi33_forpro_2.txt'))
+    # statistic_multi_subject(load_submit('submit_no1_multi33_forpro_tfaddapp.txt'))
+    # statistic_multi_subject(load_submit('submit_no1_multi34_forpro_tfaddapp_2.txt'))

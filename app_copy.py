@@ -25,7 +25,7 @@ def get_data():
     test = pd.read_csv(path + 'test_public.csv')
 
     train = train.sample(frac=1)
-    train = train.reset_index(drop=True)
+    train = train.reset_index(drop=True)  # 随机化 1
 
     data = pd.concat([train, test])
 
@@ -60,6 +60,10 @@ def pre_process():
 
     print('TfidfVectorizer')
     tf = TfidfVectorizer(ngram_range=(1, 2), analyzer='char')
+    # tf = TfidfVectorizer(ngram_range=(1, 2), analyzer='char', min_df=2, max_df=0.95, lowercase=False,
+    #                       use_idf=1, smooth_idf=1, sublinear_tf=1) #submit_no1_multi33_forpro_tfapp
+    # tf = TfidfVectorizer(ngram_range=(1, 2), analyzer='word',
+    #                      token_pattern=r"(?u)\b\w+\b",min_df=2, max_df=0.95, lowercase=False)#submit_no1_multi33_forpro_tfmy
     discuss_tf = tf.fit_transform(data['cut_comment'])
 
     print('HashingVectorizer')
@@ -93,26 +97,27 @@ def micro_avg_f1(y_true, y_pred):
 
 acc = 0
 vcc = 0
-for i, (train_fold, test_fold) in enumerate(kf):
+for i, (train_fold, test_fold) in enumerate(kf):  # 随机化 2
     X_train, X_validate, label_train, label_validate, label_1_train, label_1_validate, = X[train_fold, :], X[test_fold,
                                                                                                            :], y[
                                                                                              train_fold], y[test_fold], \
                                                                                          y1[train_fold], y1[test_fold]
     clf.fit(X_train, label_train)
 
-    # val_ = clf.predict(X_validate) # sentiment
-    # y_train_oofp[test_fold] = val_
+    val_ = clf.predict(X_validate) # sentiment
+    y_train_oofp[test_fold] = val_
     # print('sentiment_value_f1:%f' % micro_avg_f1(label_validate, val_))
-    # acc += micro_avg_f1(label_validate, val_)
+    acc += micro_avg_f1(label_validate, val_)
     result = clf.predict(test)
     y_test_oofp[:, i] = result
 
     clf.fit(X_train, label_1_train) # subject
 
-    # val_1 = clf.predict(X_validate)
-    # y_train_oofp1[test_fold] = val_
-    #
-    # vcc += micro_avg_f1(label_1_validate, val_1)
+    val_1 = clf.predict(X_validate)
+    y_train_oofp1[test_fold] = val_
+
+    print('topic_value_f1:%f' % micro_avg_f1(label_1_validate, val_1))
+    vcc += micro_avg_f1(label_1_validate, val_1)
     result = clf.predict(test)
     y_test_oofp_1[:, i] = result
 
@@ -152,8 +157,8 @@ for i in range(y_test_oofp.shape[0]):
 
 #====================================#
 # mul_x, mul_y_sub, mul_y_sen = multi_label_svc_lr(sub_p_test, test_id.tolist(), res_2, res, p=0.33)
-mul_x, mul_y_sub, mul_y_sen = multi_label_svc_lr(y_test_pro/10, test_id.tolist(), res_2, res, p=0.33)
-output('submit_no1_multi33_forpro_2.txt', mul_x, mul_y_sub, sentiment_test=mul_y_sen)
+mul_x, mul_y_sub, mul_y_sen = multi_label_svc_lr(y_test_pro/10, test_id.tolist(), res_2, res, p=0.34)
+output('submit_no1_multi34_forpro_tfaddapp_2.txt', mul_x, mul_y_sub, sentiment_test=mul_y_sen)
 #====================================#
 
 
